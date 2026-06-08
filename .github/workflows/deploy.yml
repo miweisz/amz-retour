@@ -1,0 +1,34 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /home/antoine/amz-retour
+            git pull origin main
+            npm install
+            rm -rf .next
+            npm run build
+            # Next.js 16 standalone layout fix
+            mkdir -p .next/standalone/amz-retour
+            find .next/standalone -maxdepth 1 -mindepth 1 ! -name amz-retour -exec mv {} .next/standalone/amz-retour/ \;
+            cp -r .next/static .next/standalone/amz-retour/.next/static
+            cp -r public .next/standalone/amz-retour/public 2>/dev/null || true
+            sudo rm -rf /home/ubuntu/amz-retour/.next
+            sudo cp -r .next /home/ubuntu/amz-retour/.next
+            sudo chown -R ubuntu:ubuntu /home/ubuntu/amz-retour/.next
+            # Symlink data/ to persistent storage
+            sudo rm -rf /home/ubuntu/amz-retour/.next/standalone/amz-retour/data
+            sudo ln -s /home/ubuntu/amz-retour/data /home/ubuntu/amz-retour/.next/standalone/amz-retour/data
+            sudo systemctl restart amz-retour
