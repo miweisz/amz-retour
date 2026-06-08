@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Shapeheart — Amazon Retour Sync",
+  "version": "1.0.0",
+  "description": "Récupère les retours Vendor Central (liste + ASIN + motif) et les envoie au tool Amazon Retour.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://vendorcentral.amazon.fr/*",
+    "https://vendorcentral.amazon.de/*",
+    "https://vendorcentral.amazon.es/*",
+    "https://vendorcentral.amazon.it/*",
+    "https://vendorcentral.amazon.co.uk/*",
+    "http://localhost:3007/*",
+    "https://*.shapeheart.com/*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_popup": "popup.html", "default_title": "Amazon Retour Sync" }
+}

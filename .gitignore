@@ -1,0 +1,21 @@
+# dependencies
+/node_modules
+# next.js
+/.next/
+/out/
+/build
+# misc
+.DS_Store
+*.pem
+# debug
+npm-debug.log*
+# env
+.env*
+# data (JSON store — persisted on VPS, not in git). Seed kept in /seed.
+/data/
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+# local notes
+CLAUDE.md
+.claude/

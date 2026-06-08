@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<style>
+  body { width: 320px; margin: 0; font-family: -apple-system, "Segoe UI", Arial, sans-serif; color: #111827; }
+  .hd { background: #1f3864; color: #fff; padding: 12px 14px; font-weight: 700; font-size: 14px; }
+  .bd { padding: 14px; }
+  label { font-size: 12px; font-weight: 600; color: #6b7280; display: block; margin: 10px 0 4px; }
+  input { width: 100%; box-sizing: border-box; padding: 7px 9px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; }
+  button { width: 100%; margin-top: 14px; padding: 9px; border: none; border-radius: 8px; background: #2e5496; color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .bar { height: 6px; background: #eef1f5; border-radius: 4px; margin-top: 12px; overflow: hidden; }
+  .bar > div { height: 100%; width: 0; background: #2e5496; transition: width .2s; }
+  .log { font-size: 12px; color: #374151; margin-top: 8px; min-height: 32px; }
+  .hint { font-size: 11px; color: #9ca3af; margin-top: 4px; }
+</style>
+</head>
+<body>
+  <div class="hd">Amazon Retour — Synchro</div>
+  <div class="bd">
+    <label>Endpoint du dashboard</label>
+    <input id="endpoint" value="http://localhost:3007/amazon-retour/api/returns" />
+    <div class="hint">En prod, mets l'URL du dashboard Shapeheart.</div>
+    <label>Année</label>
+    <input id="year" type="number" value="2026" />
+    <button id="go">Lancer la synchro</button>
+    <div class="bar"><div id="barfill"></div></div>
+    <div class="log" id="log">Ouvre une page Vendor Central connectée, puis lance.</div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
