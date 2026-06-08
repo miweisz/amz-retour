@@ -11,7 +11,7 @@
     "https://vendorcentral.amazon.it/*",
     "https://vendorcentral.amazon.co.uk/*",
     "http://localhost:3007/*",
-    "https://*.shapeheart.com/*"
+    "https://tech.shapeheart.fr/*"
   ],
   "background": { "service_worker": "background.js" },
   "action": { "default_popup": "popup.html", "default_title": "Amazon Retour Sync" }
