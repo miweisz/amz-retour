@@ -108,35 +108,45 @@ export function byCountry(lines: ReturnLine[]): CountryAgg[] {
 }
 
 export interface MonthAgg {
+  year: number;
   month: number;
   monthName: string;
+  /** e.g. "Jan 25" or "Fév 26" */
+  label: string;
+  /** sortable key: 202501 */
+  sortKey: number;
   qty: number;
   cost: number;
   nReturns: number;
 }
 
 export function byMonth(lines: ReturnLine[]): MonthAgg[] {
-  const map = new Map<number, MonthAgg & { rid: Set<string> }>();
+  const map = new Map<string, MonthAgg & { rid: Set<string> }>();
   for (const l of lines) {
-    let m = map.get(l.month);
+    const key = `${l.year}-${l.month}`;
+    let m = map.get(key);
     if (!m) {
-      m = { month: l.month, monthName: l.monthName, qty: 0, cost: 0, nReturns: 0, rid: new Set() };
-      map.set(l.month, m);
+      const shortYear = String(l.year).slice(-2);
+      m = { year: l.year, month: l.month, monthName: l.monthName, label: `${l.monthName.slice(0, 3)} ${shortYear}`, sortKey: l.year * 100 + l.month, qty: 0, cost: 0, nReturns: 0, rid: new Set() };
+      map.set(key, m);
     }
     m.qty += l.qty;
     m.cost += l.lineCost;
     m.rid.add(l.returnId);
   }
   return [...map.values()]
-    .map(m => ({ month: m.month, monthName: m.monthName, qty: m.qty, cost: round2(m.cost), nReturns: m.rid.size }))
-    .sort((a, b) => a.month - b.month);
+    .map(m => ({ year: m.year, month: m.month, monthName: m.monthName, label: m.label, sortKey: m.sortKey, qty: m.qty, cost: round2(m.cost), nReturns: m.rid.size }))
+    .sort((a, b) => a.sortKey - b.sortKey);
 }
 
 export interface AsinMonthMotifAgg {
   asin: string;
   nameFr: string;
+  year: number;
   month: number;
   monthName: string;
+  label: string;
+  sortKey: number;
   reason: string;
   reasonLabel: string;
   qty: number;
@@ -146,16 +156,17 @@ export interface AsinMonthMotifAgg {
 export function byAsinMonthMotif(lines: ReturnLine[]): AsinMonthMotifAgg[] {
   const map = new Map<string, AsinMonthMotifAgg>();
   for (const l of lines) {
-    const key = `${l.asin}|${l.month}|${l.reason}`;
+    const key = `${l.asin}|${l.year}|${l.month}|${l.reason}`;
     let m = map.get(key);
     if (!m) {
-      m = { asin: l.asin, nameFr: getAsinName(l.asin, l.title), month: l.month, monthName: l.monthName, reason: l.reason, reasonLabel: l.reasonLabel, qty: 0, cost: 0 };
+      const shortYear = String(l.year).slice(-2);
+      m = { asin: l.asin, nameFr: getAsinName(l.asin, l.title), year: l.year, month: l.month, monthName: l.monthName, label: `${l.monthName.slice(0, 3)} ${shortYear}`, sortKey: l.year * 100 + l.month, reason: l.reason, reasonLabel: l.reasonLabel, qty: 0, cost: 0 };
       map.set(key, m);
     }
     m.qty += l.qty;
     m.cost += l.lineCost;
   }
-  return [...map.values()].sort((a, b) => a.month - b.month || a.nameFr.localeCompare(b.nameFr));
+  return [...map.values()].sort((a, b) => a.sortKey - b.sortKey || a.nameFr.localeCompare(b.nameFr));
 }
 
 export function round2(n: number): number {

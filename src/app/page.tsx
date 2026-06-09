@@ -35,6 +35,7 @@ export default function Page() {
   const [store, setStore] = useState<ReturnStore | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("motifs");
+  const [selYears, setSelYears] = useState<Set<number>>(new Set());
   const [selMonths, setSelMonths] = useState<Set<number>>(new Set());
   const [selCountries, setSelCountries] = useState<Set<string>>(new Set());
   const [exporting, setExporting] = useState(false);
@@ -52,6 +53,12 @@ export default function Page() {
 
   const allLines = store?.lines ?? [];
 
+  const availYears = useMemo(() => {
+    const s = new Set<number>();
+    allLines.forEach((l) => s.add(l.year));
+    return [...s].sort((a, b) => a - b);
+  }, [allLines]);
+
   const availMonths = useMemo(() => {
     const s = new Set<number>();
     allLines.forEach((l) => s.add(l.month));
@@ -65,10 +72,11 @@ export default function Page() {
 
   const lines = useMemo(() => {
     return allLines.filter((l) =>
+      (selYears.size === 0 || selYears.has(l.year)) &&
       (selMonths.size === 0 || selMonths.has(l.month)) &&
       (selCountries.size === 0 || selCountries.has(l.marketplace))
     );
-  }, [allLines, selMonths, selCountries]);
+  }, [allLines, selYears, selMonths, selCountries]);
 
   const k = useMemo(() => kpis(lines), [lines]);
   const motifs = useMemo(() => byMotif(lines), [lines]);
@@ -83,7 +91,7 @@ export default function Page() {
     n.has(v) ? n.delete(v) : n.add(v);
     upd(n);
   };
-  const resetFilters = () => { setSelMonths(new Set()); setSelCountries(new Set()); };
+  const resetFilters = () => { setSelYears(new Set()); setSelMonths(new Set()); setSelCountries(new Set()); };
 
   const exportXlsx = async () => {
     setExporting(true);
@@ -162,6 +170,11 @@ export default function Page() {
       {/* Filters */}
       <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: 14, marginTop: 16 }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center" }}>
+          <FilterGroup label="Année">
+            {availYears.map((y) => (
+              <Chip key={y} active={selYears.has(y)} onClick={() => toggle(selYears, y, setSelYears)}>{y}</Chip>
+            ))}
+          </FilterGroup>
           <FilterGroup label="Mois">
             {MONTHS.filter((m) => availMonths.includes(m.n)).map((m) => (
               <Chip key={m.n} active={selMonths.has(m.n)} onClick={() => toggle(selMonths, m.n, setSelMonths)}>{m.label}</Chip>
@@ -172,7 +185,7 @@ export default function Page() {
               <Chip key={mk} active={selCountries.has(mk)} onClick={() => toggle(selCountries, mk, setSelCountries)}>{mk} · {name}</Chip>
             ))}
           </FilterGroup>
-          {(selMonths.size > 0 || selCountries.size > 0) && (
+          {(selYears.size > 0 || selMonths.size > 0 || selCountries.size > 0) && (
             <button onClick={resetFilters} className="btn" style={{ marginLeft: "auto" }}>Réinitialiser</button>
           )}
         </div>
@@ -400,7 +413,7 @@ function GlobalChart({ lines, months }: { lines: ReturnLine[]; months: ReturnTyp
     const src = groupBy === "asin" ? filteredLines : lines;
 
     if (groupBy === "total") {
-      const data = months.map(m => ({ name: m.monthName, total: view === "cost" ? m.cost : m[view] }));
+      const data = months.map(m => ({ name: m.label, total: view === "cost" ? m.cost : m[view] }));
       return { data: data as Record<string, unknown>[], series: ["total"], colors: palette, labelFn };
     }
     const groupKey = groupBy === "pays" ? "marketplace" : groupBy === "motif" ? "reason" : "asin";
@@ -409,8 +422,14 @@ function GlobalChart({ lines, months }: { lines: ReturnLine[]; months: ReturnTyp
     for (const l of src) {
       const g = l[groupKey];
       groups.add(g);
-      let entry = map.get(l.month);
-      if (!entry) { entry = { name: MONTHS.find(m => m.n === l.month)?.label || String(l.month) } as Record<string, number> & { name: string }; map.set(l.month, entry); }
+      const sortKey = l.year * 100 + l.month;
+      let entry = map.get(sortKey);
+      if (!entry) {
+        const shortYear = String(l.year).slice(-2);
+        const monthLabel = MONTHS.find(m => m.n === l.month)?.label || String(l.month);
+        entry = { name: `${monthLabel} ${shortYear}` } as Record<string, number> & { name: string };
+        map.set(sortKey, entry);
+      }
       const val = view === "cost" ? l.lineCost : view === "qty" ? l.qty : 1;
       entry[g] = (entry[g] || 0) + val;
     }
@@ -540,10 +559,10 @@ function AsinTab({ asins, asinMonthMotif }: { asins: ReturnType<typeof byAsin>; 
     if (!matchedAsin) return { data: [], reasons: [] };
     const rows = asinMonthMotif.filter(r => r.asin === matchedAsin);
     const reasons = [...new Set(rows.map(r => r.reason))];
-    const monthMap = new Map<number, Record<string, number> & { monthName: string }>();
+    const monthMap = new Map<number, Record<string, number> & { label: string }>();
     for (const r of rows) {
-      let entry = monthMap.get(r.month);
-      if (!entry) { entry = { monthName: r.monthName } as Record<string, number> & { monthName: string }; monthMap.set(r.month, entry); }
+      let entry = monthMap.get(r.sortKey);
+      if (!entry) { entry = { label: r.label } as Record<string, number> & { label: string }; monthMap.set(r.sortKey, entry); }
       entry[r.reason] = (entry[r.reason] as number || 0) + r.qty;
     }
     return { data: [...monthMap.entries()].sort((a, b) => a[0] - b[0]).map(([, v]) => v), reasons };
@@ -564,7 +583,7 @@ function AsinTab({ asins, asinMonthMotif }: { asins: ReturnType<typeof byAsin>; 
         <ResponsiveContainer width="100%" height={240}>
           <BarChart data={chartData.data} margin={{ left: 0, right: 10 }}>
             <CartesianGrid vertical={false} stroke="#eef1f5" />
-            <XAxis dataKey="monthName" fontSize={11} />
+            <XAxis dataKey="label" fontSize={11} />
             <YAxis fontSize={11} />
             <Tooltip />
             <Legend formatter={(v) => REASON_LABELS[v] || v} />
@@ -600,6 +619,7 @@ function DetailTab({ rows }: { rows: ReturnLine[] }) {
       <DataTable
         columns={[
           { key: "country", label: "Pays", width: 70 },
+          { key: "year", label: "Année", numeric: true, width: 60 },
           { key: "monthName", label: "Mois", width: 60 },
           { key: "date", label: "Date", width: 85 },
           { key: "vendorCode", label: "Vendor", width: 80 },
