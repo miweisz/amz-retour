@@ -6,7 +6,7 @@ import {
   LineChart, Line, Legend,
 } from "recharts";
 import {
-  RefreshCw, Download, Package, Euro, RotateCcw, Boxes, Search,
+  RefreshCw, Download, Package, Euro, RotateCcw, Boxes, Search, ArrowLeft,
 } from "lucide-react";
 import type { ReturnLine, ReturnStore } from "@/lib/types";
 import { byMotif, byAsin, byCountry, byMonth, byAsinMonthMotif, kpis } from "@/lib/aggregate";
@@ -143,11 +143,16 @@ export default function Page() {
   return (
     <div style={{ maxWidth: 1280, margin: "0 auto", padding: "24px 20px 60px" }}>
       <header style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-        <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <a href="/amazon-tracker" className="btn" style={{ padding: "6px 10px", borderRadius: 8 }} title="Retour Amazon Back Office">
+            <ArrowLeft size={16} />
+          </a>
+          <div>
           <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--navy)", margin: 0 }}>Amazon Retour</h1>
           <p style={{ color: "var(--muted)", margin: "4px 0 0", fontSize: 13 }}>
             Retours Amazon Vendor Central → fournisseur · Shapeheart{store?.updatedAt ? ` · maj ${new Date(store.updatedAt).toLocaleString("fr-FR")}` : ""}
           </p>
+          </div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={load} className="btn">
