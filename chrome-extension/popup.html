@@ -8,6 +8,9 @@
   .bd { padding: 14px; }
   label { font-size: 12px; font-weight: 600; color: #6b7280; display: block; margin: 10px 0 4px; }
   input { width: 100%; box-sizing: border-box; padding: 7px 9px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; }
+  .year-row { display: flex; gap: 8px; }
+  .year-row > div { flex: 1; }
+  .year-row input { width: 100%; }
   button { width: 100%; margin-top: 14px; padding: 9px; border: none; border-radius: 8px; background: #2e5496; color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; }
   button:disabled { opacity: .5; cursor: not-allowed; }
   .bar { height: 6px; background: #eef1f5; border-radius: 4px; margin-top: 12px; overflow: hidden; }
@@ -22,8 +25,16 @@
     <label>Endpoint du dashboard</label>
     <input id="endpoint" value="https://tech.shapeheart.fr/amazon-retour/api/returns" />
     <div class="hint">En prod, mets l'URL du dashboard Shapeheart.</div>
-    <label>Année</label>
-    <input id="year" type="number" value="2026" />
+    <div class="year-row">
+      <div>
+        <label>De (année)</label>
+        <input id="yearFrom" type="number" value="2025" />
+      </div>
+      <div>
+        <label>À (année)</label>
+        <input id="yearTo" type="number" value="2026" />
+      </div>
+    </div>
     <button id="go">Lancer la synchro</button>
     <div class="bar"><div id="barfill"></div></div>
     <div class="log" id="log">Ouvre une page Vendor Central connectée, puis lance.</div>
