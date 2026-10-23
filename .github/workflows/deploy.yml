@@ -16,8 +16,10 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             sudo -u antoine bash -c '
+              set -e
               cd /home/antoine/amz-retour
-              git pull origin main
+              git fetch origin main
+              git reset --hard origin/main
               npm install
               rm -rf .next
               npm run build
